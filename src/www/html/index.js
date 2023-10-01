@@ -68,8 +68,6 @@ export class Page extends HTML {
   }
 
   calcCoinPrice(value = 0, old_price = 0, current_price = 0) {
-    console.log('calcCoinPrice', { value, old_price, current_price })
-
     return (value * current_price / old_price).toFixed(2)
   }
 
