@@ -1,6 +1,52 @@
-import { HTML, nLink, nButton } from '@brtmvdl/frontend'
+import { HTML, nButton } from '@brtmvdl/frontend'
 import * as UTILS from './utils.js'
 import * as Local from './local.js'
+
+class Coin {
+  price = 0
+  symbol = ''
+
+  constructor(price = 0, symbol = '') {
+    this.price = price
+    this.symbol = symbol
+  }
+}
+
+class Pair {
+  price = 0
+  symbol = ''
+
+  constructor(price = 0, symbol = '') {
+    this.price = price
+    this.symbol = symbol
+  }
+}
+
+class Buy {
+  coin = null
+  pair = null
+  datetime = null
+
+  constructor(coin = new Coin(), pair = new Pair()) {
+    this.coin = coin
+    this.pair = pair
+    this.datetime = Date.now()
+  }
+}
+
+class Sell {
+  buy = null
+  coin = null
+  pair = null
+  datetime = null
+
+  constructor(buy, coin = new Coin(), pair = new Pair()) {
+    this.buy = buy
+    this.coin = coin
+    this.pair = pair
+    this.datetime = Date.now()
+  }
+}
 
 export class Page extends HTML {
   children = {
@@ -13,7 +59,7 @@ export class Page extends HTML {
   }
 
   state = {
-    price: 0,
+    pair: new Pair(0, 'BTCBRL')
   }
 
   onCreate() {
@@ -59,16 +105,30 @@ export class Page extends HTML {
     return this.children.coin_datetime
   }
 
-  buy(fromPrice = 0, fromCoin = 'BRL', toCoin = 'BTC') {
-    Local.add(['buy'], { fromPrice, fromCoin, toPrice: this.state.price, toCoin, datetime: this.parseDatetime() })
-  }
-
-  sell(fromPrice = 0, fromCoin = 'BRL', toCoin = 'BTC') {
-    Local.add(['sell'], { fromPrice, fromCoin, toPrice: this.state.price, toCoin, datetime: this.parseDatetime() })
-  }
-
   calcCoinPrice(value = 0, old_price = 0, current_price = 0) {
     return (value * current_price / old_price).toFixed(2)
+  }
+
+  buy(coin = new Coin()) {
+    Local.add(['move'], { buy: new Buy(coin, this.state.pair), sell: null, })
+  }
+
+  sell(buy = new Buy()) {
+    const moves = Array.from(Local.get(['move'], []))
+
+    const move_index = moves.findIndex((move) => move.buy.datetime === buy.datetime)
+
+    if (moves[move_index]) {
+      const price = this.calcCoinPrice(buy.coin.price, this.state.pair.price, buy.pair.price)
+
+      const coin = new Coin(price, buy.coin.symbol)
+
+      moves[move_index].sell = new Sell(buy, coin, this.state.pair,)
+    }
+
+    Local.set(['move'], moves)
+
+    this.updateHistory()
   }
 
   updateHistory() {
@@ -76,35 +136,77 @@ export class Page extends HTML {
 
     const buy_group = new HTML()
 
-    const buy_list = Local.get(['buy'], [])
+    const moves = Local.get(['move'], [])
 
-    if (!buy_list) return
+    if (!moves) return
 
-    Array.from(buy_list).map((buy_item) => {
-      const buy_card = new HTML()
+    Array.from(moves).map((move) => {
+      console.log({ move })
 
-      buy_card.setStyle('padding', 'calc(1rem / 2)')
-      buy_card.setStyle('margin', '1rem')
-      buy_card.setStyle('box-shadow', '0rem 0rem 0rem calc(1rem / 8) #000000')
+      const card = new HTML()
+      card.setStyle('margin', '1rem')
+      card.setStyle('box-shadow', '0rem 0rem 0rem calc(1rem / 4) #000000')
 
-      const buy_info = new HTML()
-      buy_info.setText(`${buy_item.fromCoin} ${buy_item.fromPrice} @ ${buy_item.toCoin}${buy_item.fromCoin} ${(+buy_item.toPrice).toFixed(2)}`)
-      buy_card.append(buy_info)
+      // card.setText(JSON.stringify(buy_item, null, 4))
+
+      const buy_title = new HTML()
+      buy_title.setText('Buy')
+      buy_title.setStyle('background-color', '#000000')
+      buy_title.setStyle('padding', 'calc(1rem / 2)')
+      buy_title.setStyle('color', '#ffffff')
+      card.append(buy_title)
+
+      const buy_coin = new HTML()
+      buy_coin.setText(`${move.buy.coin.symbol} ${move.buy.coin.price}`)
+      buy_coin.setStyle('padding', 'calc(1rem / 2)')
+      card.append(buy_coin)
+
+      const buy_pair = new HTML()
+      buy_pair.setText(`${move.buy.pair.symbol} ${move.buy.pair.price}`)
+      buy_pair.setStyle('padding', 'calc(1rem / 2)')
+      card.append(buy_pair)
 
       const buy_datetime = new HTML()
-      buy_datetime.setText(buy_item.datetime)
-      buy_card.append(buy_datetime)
+      buy_datetime.setText(`${this.parseDatetime(move.buy.datetime)}`)
+      buy_datetime.setStyle('padding', 'calc(1rem / 2)')
+      card.append(buy_datetime)
 
-      const buy_sell_price = new HTML()
-      buy_sell_price.setText(`BRL ${this.calcCoinPrice(buy_item.fromPrice, buy_item.toPrice, this.state.price)}`)
-      buy_card.append(buy_sell_price)
+      if (move.sell) {
+        const sell_title = new HTML()
+        sell_title.setText('Sell')
+        sell_title.setStyle('background-color', '#000000')
+        sell_title.setStyle('padding', 'calc(1rem / 2)')
+        sell_title.setStyle('color', '#ffffff')
+        card.append(sell_title)
 
-      const buy_link = new nLink()
-      buy_link.setText('sell')
-      buy_link.on('click', () => this.sell())
-      buy_card.append(buy_link)
+        const sell_coin = new HTML()
+        sell_coin.setText(`${move.sell.coin.symbol} ${move.sell.coin.price}`)
+        sell_coin.setStyle('padding', 'calc(1rem / 2)')
+        card.append(sell_coin)
 
-      buy_group.append(buy_card)
+        const sell_pair = new HTML()
+        sell_pair.setText(`${move.sell.pair.symbol} ${move.sell.pair.price}`)
+        sell_pair.setStyle('padding', 'calc(1rem / 2)')
+        card.append(sell_pair)
+
+        const sel_datetime = new HTML()
+        sel_datetime.setText(`${this.parseDatetime(move.sell.datetime)}`)
+        sel_datetime.setStyle('padding', 'calc(1rem / 2)')
+        card.append(sel_datetime)
+      } else {
+        const sell_button = new nButton()
+        sell_button.setText('Sell')
+        sell_button.setStyle('box-shadow', '0rem 0rem 0rem calc(1rem / 4) #000000')
+        sell_button.setStyle('background-color', '#000000')
+        sell_button.setStyle('color', '#ffffff')
+        sell_button.setStyle('padding', 'calc(1rem / 2) calc(1rem / 1)')
+        sell_button.setStyle('margin', '0rem 1rem 1rem 1rem')
+        sell_button.setStyle('border', 'none')
+        sell_button.on('click', () => this.sell(move.buy))
+        card.append(sell_button)
+      }
+
+      buy_group.append(card)
     })
 
     this.children.history.append(buy_group)
@@ -115,7 +217,7 @@ export class Page extends HTML {
 
     button.setText('Buy (BRL 100.00)')
     button.on('click', () => {
-      this.buy(100.00, 'BRL', 'BTC')
+      this.buy(new Coin(100, 'BRL'))
       this.updateHistory()
     })
 
@@ -146,16 +248,14 @@ export class Page extends HTML {
     return this.children.history
   }
 
-  getPair() {
-    return ['BTC', 'BRL'].join('')
-  }
+  parseDatetime(now = Date.now()) {
+    const datetime = new Date(now)
 
-  parseDatetime(datetime = new Date()) {
     const date = [
-      datetime.getDate(),
-      datetime.getMonth() + 1,
       datetime.getFullYear(),
-    ].map((text) => UTILS.padLeft(text, 2, '0')).join('/')
+      datetime.getMonth() + 1,
+      datetime.getDate(),
+    ].map((text) => UTILS.padLeft(text, 2, '0')).join('-')
 
     const time = [
       datetime.getHours(),
@@ -166,8 +266,12 @@ export class Page extends HTML {
     return `${date} ${time}`
   }
 
+  getCoinPriceValue() {
+    return (this.state.pair.price).toFixed(2).replace('.', ',')
+  }
+
   getCoinPriceText() {
-    return `${this.getPair()} ${(+this.state.price).toFixed(2)}`
+    return `${this.state.pair.symbol} ${this.getCoinPriceValue()}`
   }
 
   updateDatetime() {
@@ -177,9 +281,9 @@ export class Page extends HTML {
   observePrices() {
     this.children.coin_datetime.setText(this.parseDatetime())
 
-    fetch(`https://api4.binance.com/api/v3/ticker/price?symbol=${this.getPair()}`)
+    fetch(`https://api4.binance.com/api/v3/ticker/price?symbol=${this.state.pair.symbol}`)
       .then((res) => res.json())
-      .then(({ price }) => this.state.price = price)
+      .then(({ price }) => this.state.pair.price = +price)
       .then(() => this.children.coin_price.setText(this.getCoinPriceText()))
       .then(() => this.updateDatetime())
       .then(() => this.updateHistory())
