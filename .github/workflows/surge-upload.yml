@@ -1,4 +1,4 @@
-name: npx surge
+name: Surge upload
 
 on:
   workflow_dispatch:
