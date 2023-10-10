@@ -267,10 +267,19 @@ export class Page extends HTML {
 
     if (moves) {
       const history_title = new HTML()
-      history_title.setText('History')
-      history_title.setStyle('font-size', '2rem')
-      history_title.setStyle('padding', '1rem')
       this.children.history.append(history_title)
+
+      const history_title_text = new nSpan()
+      history_title_text.setText('History')
+      history_title_text.setStyle('font-size', '2rem')
+      history_title_text.setStyle('padding', '1rem')
+      history_title.append(history_title_text)
+
+      const history_title_link = new nSpan()
+      history_title_link.setText('clear')
+      history_title_link.setStyle('padding', '1rem')
+      history_title_link.on('click', () => Local.set(['move'], []))
+      history_title.append(history_title_link)
 
       moves.map(({ buy = new Buy(), sell = null }) => {
         const html = new HTML()
