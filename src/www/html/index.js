@@ -105,8 +105,16 @@ export class Page extends HTML {
     return this.children.coin_datetime
   }
 
-  calcCoinPrice(value = 0, old_price = 0, current_price = 0) {
-    return (value * current_price / old_price).toFixed(2)
+  calcDiffPrice(value = 0, old_price = 0, current_price = 0) {
+    return (value * current_price / old_price) // .toFixed(2)
+  }
+
+  getPriceValue(price = this.state.pair.price) {
+    return (+price).toFixed(2).replace('.', ',')
+  }
+
+  getPriceText(symbol = this.state.pair.symbol, price = this.state.pair.price) {
+    return `${symbol} ${this.getPriceValue(+price)}`
   }
 
   buy(coin = new Coin()) {
@@ -119,7 +127,7 @@ export class Page extends HTML {
     const move_index = moves.findIndex((move) => move.buy.datetime === buy.datetime)
 
     if (moves[move_index]) {
-      const price = this.calcCoinPrice(buy.coin.price, this.state.pair.price, buy.pair.price)
+      const price = this.calcDiffPrice(buy.coin.price, this.state.pair.price, buy.pair.price)
 
       const coin = new Coin(price, buy.coin.symbol)
 
@@ -141,13 +149,9 @@ export class Page extends HTML {
     if (!moves) return
 
     Array.from(moves).map((move) => {
-      console.log({ move })
-
       const card = new HTML()
       card.setStyle('margin', '1rem')
       card.setStyle('box-shadow', '0rem 0rem 0rem calc(1rem / 4) #000000')
-
-      // card.setText(JSON.stringify(buy_item, null, 4))
 
       const buy_title = new HTML()
       buy_title.setText('Buy')
@@ -157,12 +161,12 @@ export class Page extends HTML {
       card.append(buy_title)
 
       const buy_coin = new HTML()
-      buy_coin.setText(`${move.buy.coin.symbol} ${move.buy.coin.price}`)
+      buy_coin.setText(this.getPriceText(move.buy.coin.symbol, move.buy.coin.price))
       buy_coin.setStyle('padding', 'calc(1rem / 2)')
       card.append(buy_coin)
 
       const buy_pair = new HTML()
-      buy_pair.setText(`${move.buy.pair.symbol} ${move.buy.pair.price}`)
+      buy_pair.setText(this.getPriceText(move.buy.pair.symbol, move.buy.pair.price))
       buy_pair.setStyle('padding', 'calc(1rem / 2)')
       card.append(buy_pair)
 
@@ -180,12 +184,12 @@ export class Page extends HTML {
         card.append(sell_title)
 
         const sell_coin = new HTML()
-        sell_coin.setText(`${move.sell.coin.symbol} ${move.sell.coin.price}`)
+        sell_coin.setText(this.getPriceText(move.sell.coin.symbol, move.sell.coin.price))
         sell_coin.setStyle('padding', 'calc(1rem / 2)')
         card.append(sell_coin)
 
         const sell_pair = new HTML()
-        sell_pair.setText(`${move.sell.pair.symbol} ${move.sell.pair.price}`)
+        sell_pair.setText(this.getPriceText(move.sell.pair.symbol, move.sell.pair.price))
         sell_pair.setStyle('padding', 'calc(1rem / 2)')
         card.append(sell_pair)
 
@@ -193,14 +197,55 @@ export class Page extends HTML {
         sel_datetime.setText(`${this.parseDatetime(move.sell.datetime)}`)
         sel_datetime.setStyle('padding', 'calc(1rem / 2)')
         card.append(sel_datetime)
+
+        const diff_title = new HTML()
+        diff_title.setText('Diff')
+        diff_title.setStyle('background-color', '#000000')
+        diff_title.setStyle('padding', 'calc(1rem / 2)')
+        diff_title.setStyle('color', '#ffffff')
+        card.append(diff_title)
+
+        const pairPrice = this.getPriceValue(move.sell.pair.price - move.buy.pair.price)
+
+        const diff_pair = new HTML()
+        diff_pair.setText(this.getPriceText(move.sell.pair.symbol, pairPrice))
+        diff_pair.setStyle('padding', 'calc(1rem / 2)')
+        card.append(diff_pair)
+
+        const coinPrice = this.getPriceValue(this.calcDiffPrice(move.buy.coin.price, this.state.pair.price, move.buy.pair.price))
+
+        const diff_coin = new HTML()
+        diff_coin.setText(this.getPriceText(move.buy.coin.symbol, coinPrice))
+        diff_coin.setStyle('padding', 'calc(1rem / 2)')
+        card.append(diff_coin)
       } else {
+        const diff_title = new HTML()
+        diff_title.setText('Diff')
+        diff_title.setStyle('background-color', '#000000')
+        diff_title.setStyle('padding', 'calc(1rem / 2)')
+        diff_title.setStyle('color', '#ffffff')
+        card.append(diff_title)
+
+        const diff_pair = new HTML()
+        diff_pair.setText(this.getPriceText(this.state.pair.symbol, this.state.pair.price - move.buy.pair.price))
+        diff_pair.setStyle('padding', 'calc(1rem / 2)')
+        card.append(diff_pair)
+
+        const diff_coin_price = this.calcDiffPrice(move.buy.coin.price, move.buy.pair.price, this.state.pair.price)
+
+        const diff_coin = new HTML()
+        diff_coin.setText(this.getPriceText(move.buy.coin.symbol, diff_coin_price))
+        diff_coin.setStyle('padding', 'calc(1rem / 2)')
+        card.append(diff_coin)
+
         const sell_button = new nButton()
         sell_button.setText('Sell')
         sell_button.setStyle('box-shadow', '0rem 0rem 0rem calc(1rem / 4) #000000')
         sell_button.setStyle('background-color', '#000000')
         sell_button.setStyle('color', '#ffffff')
-        sell_button.setStyle('padding', 'calc(1rem / 2) calc(1rem / 1)')
-        sell_button.setStyle('margin', '0rem 1rem 1rem 1rem')
+        sell_button.setStyle('outline', 'none')
+        sell_button.setStyle('padding', 'calc(1rem / 2)')
+        sell_button.setStyle('margin', '0rem calc(2rem / 3) 1rem')
         sell_button.setStyle('border', 'none')
         sell_button.on('click', () => this.sell(move.buy))
         card.append(sell_button)
@@ -266,28 +311,17 @@ export class Page extends HTML {
     return `${date} ${time}`
   }
 
-  getCoinPriceValue() {
-    return (this.state.pair.price).toFixed(2).replace('.', ',')
-  }
-
-  getCoinPriceText() {
-    return `${this.state.pair.symbol} ${this.getCoinPriceValue()}`
-  }
-
-  updateDatetime() {
-    this.children.coin_datetime.setText((new Date()).toString())
-  }
-
   observePrices() {
     this.children.coin_datetime.setText(this.parseDatetime())
 
     fetch(`https://api4.binance.com/api/v3/ticker/price?symbol=${this.state.pair.symbol}`)
       .then((res) => res.json())
       .then(({ price }) => this.state.pair.price = +price)
-      .then(() => this.children.coin_price.setText(this.getCoinPriceText()))
-      .then(() => this.updateDatetime())
+      .then(() => this.children.coin_price.setText(this.getPriceText()))
+      .then(() => this.children.coin_datetime.setText((new Date()).toString()))
       .then(() => this.updateHistory())
       .then(() => this.observePrices())
       .catch((error) => this.children.error_message.setText(error.message))
   }
+
 }
