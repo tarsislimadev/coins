@@ -2,169 +2,28 @@ import { HTML, nButton, nSpan } from '@brtmvdl/frontend'
 import * as UTILS from './utils.js'
 import * as Local from './local.js'
 
-class Coin {
-  price = 0
-  symbol = ''
+import { PriceHTML } from './views/price.js'
+import { DatetimeHTML } from './views/datetime.js'
+import { TopHTML } from './views/top.js'
+import { ButtonHTML } from './views/button.js'
 
-  constructor(price = 0, symbol = '') {
-    this.price = price
-    this.symbol = symbol
-  }
-}
-
-class Pair {
-  price = 0
-  symbol = ''
-
-  constructor(price = 0, symbol = '') {
-    this.price = price
-    this.symbol = symbol
-  }
-}
-
-class Buy {
-  coin = null
-  pair = null
-  datetime = null
-
-  constructor(coin = new Coin(), pair = new Pair()) {
-    this.coin = coin
-    this.pair = pair
-    this.datetime = Date.now()
-  }
-}
-
-class Sell {
-  buy = null
-  // coin = null
-  pair = null
-  datetime = null
-
-  constructor(buy, pair = new Pair()) {
-    this.buy = buy
-    // this.coin = coin
-    this.pair = pair
-    this.datetime = Date.now()
-  }
-}
-
-class TopHTML extends HTML {
-  onCreate() {
-    this.setText('Coins')
-
-    this.setStyle('background-color', '#000000')
-    this.setStyle('text-align', 'center')
-    this.setStyle('font-size', '2rem')
-    this.setStyle('color', '#ffffff')
-    this.setStyle('padding', '1rem')
-  }
-}
-
-class PriceHTML extends HTML {
-  state = {
-    symbol: 'BTCBRL',
-    price: 0,
-  }
-
-  children = {
-    price: new HTML(),
-  }
-
-  constructor() {
-    super()
-    this.setPrice()
-  }
-
-  onCreate() {
-    this.append(this.getPriceHTML())
-  }
-
-  getPriceHTML() {
-    this.children.price.setStyle('padding', '1rem 0rem')
-    this.children.price.setStyle('text-align', 'center')
-    this.children.price.setStyle('font-size', '2rem')
-
-    return this.children.price
-  }
-
-  setSymbol(symbol = 0) {
-    this.state.symbol = symbol
-    this.updateprice()
-    return this
-  }
-
-  setPrice(price = 0) {
-    this.state.price = price
-    this.updateprice()
-    return this
-  }
-
-  getPriceText(price = this.state.price, symbol = this.state.symbol) {
-    return [
-      symbol,
-      price.toFixed(2).replace('.', ','),
-    ].join(' ')
-  }
-
-  updateprice(price = this.state.price, symbol = this.state.symbol) {
-    this.children.price.setText(this.getPriceText(price, symbol))
-  }
-}
-
-class DatetimeHTML extends HTML {
-  state = {
-    datetime: 0,
-  }
-
-  children = {
-    datetime: new HTML(),
-  }
-
-  onCreate() {
-    this.append(this.getDatetimeHTML())
-  }
-
-  getDatetimeHTML() {
-    this.children.datetime.setStyle('padding', '1rem 0rem')
-    this.children.datetime.setStyle('text-align', 'center')
-
-    return this.children.datetime
-  }
-
-  getDatetimeText(now = Date.now()) {
-    const datetime = new Date(now)
-
-    const date = [
-      datetime.getFullYear(),
-      datetime.getMonth() + 1,
-      datetime.getDay(),
-    ].map((num) => UTILS.padLeft(num, 2, '0')).join('-')
-
-    const time = [
-      datetime.getHours(),
-      datetime.getMinutes(),
-      datetime.getSeconds(),
-    ].map((num) => UTILS.padLeft(num, 2, '0')).join(':')
-
-    return [date, time].join(' ')
-  }
-
-  updateDatetime() {
-    this.children.datetime.setText(this.getDatetimeText())
-  }
-}
+import { Pair } from './models/pair.js'
+import { Coin } from './models/coin.js'
+import { Buy } from './models/buy.js'
+import { Sell } from './models/sell.js'
 
 export class Page extends HTML {
   children = {
     price: new PriceHTML(),
     datetime: new DatetimeHTML(),
-    buy_button: new nButton(),
+    buy_button: new ButtonHTML(),
     history: new HTML(),
   }
 
   state = {
     pair: new Pair(0, 'BTCBRL'),
-    moves: []
+    order: 'desc',
+    moves: [],
   }
 
   onCreate() {
@@ -226,17 +85,8 @@ export class Page extends HTML {
 
   getBuyButtonHTML() {
     this.children.buy_button.setText('Buy (BRL 100)')
-
     this.children.buy_button.setContainerStyle('text-align', 'center')
-
-    this.children.buy_button.setStyle('background-color', '#000000')
-    this.children.buy_button.setStyle('text-align', 'center')
-    this.children.buy_button.setStyle('color', '#ffffff')
-    this.children.buy_button.setStyle('padding', '1rem')
-    this.children.buy_button.setStyle('border', 'none')
-
     this.children.buy_button.on('click', () => this.buy(new Coin(100, 'BRL'), this.state.pair))
-
     return this.children.buy_button
   }
 
@@ -260,6 +110,22 @@ export class Page extends HTML {
     this.children.datetime.updateDatetime()
   }
 
+  createText(text = '') {
+    const text_html = new HTML()
+    text_html.setText(text)
+    text_html.setStyle('padding', 'calc(1rem / 2)')
+    return text_html
+  }
+
+  createTitle(title = '') {
+    const text_html = new HTML()
+    text_html.setText(title)
+    text_html.setStyle('background-color', '#000000')
+    text_html.setStyle('padding', 'calc(1rem / 2)')
+    text_html.setStyle('color', '#ffffff')
+    return text_html
+  }
+
   updateHistory() {
     this.children.history.clear()
 
@@ -277,112 +143,61 @@ export class Page extends HTML {
 
       const history_title_link = new nSpan()
       history_title_link.setText('clear')
-      history_title_link.setStyle('padding', '1rem')
+      history_title_link.setStyle('padding-left', '1rem')
       history_title_link.on('click', () => Local.set(['move'], []))
       history_title.append(history_title_link)
 
-      moves.map(({ buy = new Buy(), sell = null }) => {
-        const html = new HTML()
-        html.setStyle('margin', '1rem')
-        html.setStyle('box-shadow', '0rem 0rem 0rem calc(1rem / 4) #000000')
+      const history_order_link = new nSpan()
+      history_order_link.setText(this.state.order)
+      history_order_link.setStyle('padding-left', '1rem')
+      history_order_link.on('click', () => history_order_link.setText(this.state.order = history_order_link.getText() === 'desc' ? 'asc' : 'desc'))
+      history_title.append(history_order_link)
 
-        const buy_title = new HTML()
-        buy_title.setText('Buy')
-        buy_title.setStyle('background-color', '#000000')
-        buy_title.setStyle('color', '#ffffff')
-        buy_title.setStyle('padding', 'calc(1rem / 2)')
-        html.append(buy_title)
+      moves
+        .sort((a, b) => this.state.order === 'desc' ? (b.buy.datetime - a.buy.datetime) : (a.buy.datetime - b.buy.datetime))
+        .map(({ buy = new Buy(), sell = null }) => {
+          const html = new HTML()
+          html.setStyle('margin', '1rem')
+          html.setStyle('box-shadow', '0rem 0rem 0rem calc(1rem / 4) #000000')
 
-        const buy_pair_text = new HTML()
-        buy_pair_text.setText(`${buy.pair.symbol} ${this.getPriceValue(buy.pair.price)}`)
-        buy_pair_text.setStyle('padding', 'calc(1rem / 2)')
-        html.append(buy_pair_text)
+          html.append(this.createTitle('Buy'))
 
-        const buy_coin_text = new HTML()
-        buy_coin_text.setText(`${buy.coin.symbol} ${this.getPriceValue(buy.coin.price)}`)
-        buy_coin_text.setStyle('padding', 'calc(1rem / 2)')
-        html.append(buy_coin_text)
+          html.append(this.createText(`${buy.pair.symbol} ${this.getPriceValue(buy.pair.price)}`))
 
-        const buy_datetime = new HTML()
-        buy_datetime.setText(`${this.parseDatetime(buy.datetime)}`)
-        buy_datetime.setStyle('padding', 'calc(1rem / 2)')
-        html.append(buy_datetime)
+          html.append(this.createText(`${buy.coin.symbol} ${this.getPriceValue(buy.coin.price)}`))
 
-        if (sell) {
-          console.log({ sell })
+          html.append(this.createText(`${this.parseDatetime(buy.datetime)}`))
 
-          const sell_title = new HTML()
-          sell_title.setText('Sell')
-          sell_title.setStyle('background-color', '#000000')
-          sell_title.setStyle('color', '#ffffff')
-          sell_title.setStyle('padding', 'calc(1rem / 2)')
-          html.append(sell_title)
+          if (sell) {
+            html.append(this.createTitle('Sell'))
 
-          const sell_pair_text = new HTML()
-          sell_pair_text.setText(`${sell.pair.symbol} ${this.getPriceValue(sell.pair.price)}`)
-          sell_pair_text.setStyle('padding', 'calc(1rem / 2)')
-          html.append(sell_pair_text)
+            html.append(this.createText(`${sell.pair.symbol} ${this.getPriceValue(sell.pair.price)}`))
 
-          const sell_coin_text = new HTML()
-          sell_coin_text.setText(`${sell.buy.coin.symbol} ${this.getPriceValue(buy.coin.price * sell.pair.price / buy.pair.price)}`)
-          sell_coin_text.setStyle('padding', 'calc(1rem / 2)')
-          html.append(sell_coin_text)
+            html.append(this.createText(`${sell.buy.coin.symbol} ${this.getPriceValue(buy.coin.price * sell.pair.price / buy.pair.price)}`))
 
-          const sell_datetime = new HTML()
-          sell_datetime.setText(`${this.parseDatetime(sell.datetime)}`)
-          sell_datetime.setStyle('padding', 'calc(1rem / 2)')
-          html.append(sell_datetime)
+            html.append(this.createText(`${this.parseDatetime(sell.datetime)}`))
 
-          const diff_title = new HTML()
-          diff_title.setText('Diff')
-          diff_title.setStyle('background-color', '#000000')
-          diff_title.setStyle('color', '#ffffff')
-          diff_title.setStyle('padding', 'calc(1rem / 2)')
-          html.append(diff_title)
+            html.append(this.createTitle('Diff'))
 
-          const diff_pair_text = new HTML()
-          diff_pair_text.setText(`${buy.pair.symbol} ${this.getPriceValue(sell.pair.price - buy.pair.price)}`)
-          diff_pair_text.setStyle('padding', 'calc(1rem / 2)')
-          html.append(diff_pair_text)
+            html.append(this.createText(`${buy.pair.symbol} ${this.getPriceValue(sell.pair.price - buy.pair.price)}`))
 
-          const diff_coin_text = new HTML()
-          diff_coin_text.setText(`${buy.coin.symbol} ${this.parseDiffPrice(buy.coin.price, buy.pair.price, sell.pair.price)}`)
-          diff_coin_text.setStyle('padding', 'calc(1rem / 2)')
-          html.append(diff_coin_text)
+            html.append(this.createText(`${buy.coin.symbol} ${this.parseDiffPrice(buy.coin.price, buy.pair.price, sell.pair.price)}`))
 
-        } else {
-          const diff_title = new HTML()
-          diff_title.setText('Diff')
-          diff_title.setStyle('background-color', '#000000')
-          diff_title.setStyle('color', '#ffffff')
-          diff_title.setStyle('padding', 'calc(1rem / 2)')
-          html.append(diff_title)
+          } else {
+            html.append(this.createTitle('Diff'))
 
-          const diff_pair_text = new HTML()
-          diff_pair_text.setText(`${buy.pair.symbol} ${this.getPriceValue(this.state.pair.price - buy.pair.price)}`)
-          diff_pair_text.setStyle('padding', 'calc(1rem / 2)')
-          html.append(diff_pair_text)
+            html.append(this.createText(`${buy.pair.symbol} ${this.getPriceValue(this.state.pair.price - buy.pair.price)}`))
 
-          const diff_coin_text = new HTML()
-          diff_coin_text.setText(`${buy.coin.symbol} ${this.parseDiffPrice(buy.coin.price, buy.pair.price, this.state.pair.price)}`)
-          diff_coin_text.setStyle('padding', 'calc(1rem / 2)')
-          html.append(diff_coin_text)
+            html.append(this.createText(`${buy.coin.symbol} ${this.parseDiffPrice(buy.coin.price, buy.pair.price, this.state.pair.price)}`))
 
-          const sell_button = new nButton()
-          sell_button.setText('Sell')
-          sell_button.setStyle('box-shadow', '0rem 0rem 0rem calc(1rem / 4) #000000')
-          sell_button.setStyle('background-color', '#000000')
-          sell_button.setStyle('padding', 'calc(1rem / 2)')
-          sell_button.setStyle('color', '#ffffff')
-          sell_button.setStyle('outline', 'none')
-          sell_button.setStyle('border', 'none')
-          sell_button.setStyle('margin', '1rem')
-          sell_button.on('click', () => this.sell(buy))
-          html.append(sell_button)
-        }
+            const sell_button = new ButtonHTML()
+            sell_button.setText('Sell')
+            sell_button.on('click', () => this.sell(buy))
+            html.append(sell_button)
+          }
 
-        this.children.history.append(html)
-      })
+          this.children.history.append(html)
+        })
     }
   }
 
