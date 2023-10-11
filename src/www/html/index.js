@@ -162,7 +162,7 @@ export class Page extends HTML {
 
     const hours = Math.floor(time / HOURS)
     const minutes = Math.floor(time / MINUTES) - (hours * HOURS)
-    const seconds = Math.floor(time / SECONDS) - (minutes * MINUTES)
+    const seconds = Math.floor(time / SECONDS) - (minutes * MINUTES) - (hours * HOURS)
 
     return this.createText(`${hours} hours ${minutes} minutes ${seconds} seconds`)
   }
