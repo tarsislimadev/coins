@@ -262,6 +262,10 @@ export class Page extends HTML {
       .then(() => this.updateDatetime())
       .then(() => this.updateHistory())
       .then(() => this.updatePrice())
+      .catch((err) => {
+        console.error(err)
+        setTimeout(() => this.updatePrice(), 2000)
+      })
   }
 
 }
