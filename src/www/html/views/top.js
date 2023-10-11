@@ -5,6 +5,7 @@ export class TopHTML extends HTML {
     this.setText('Coins')
 
     this.setStyle('background-color', '#000000')
+    this.setStyle('margin-bottom', '1rem')
     this.setStyle('text-align', 'center')
     this.setStyle('font-size', '2rem')
     this.setStyle('color', '#ffffff')

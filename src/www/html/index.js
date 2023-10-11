@@ -1,4 +1,4 @@
-import { HTML, nButton, nSpan } from '@brtmvdl/frontend'
+import { HTML, nSelect, nSpan } from '@brtmvdl/frontend'
 import * as UTILS from './utils.js'
 import * as Local from './local.js'
 
@@ -14,7 +14,8 @@ import { Sell } from './models/sell.js'
 
 export class Page extends HTML {
   children = {
-    price: new PriceHTML(),
+    pair: new nSelect(),
+    price: new HTML(),
     datetime: new DatetimeHTML(),
     buy_button: new ButtonHTML(),
     history: new HTML(),
@@ -24,11 +25,31 @@ export class Page extends HTML {
     pair: new Pair(0, 'BTCBRL'),
     order: 'desc',
     moves: [],
+    pairs: [
+      ['BTC', 'BRL'],
+      ['USDT', 'BRL'],
+      ['ETH', 'BRL'],
+      ['XRP', 'BRL'],
+      ['BNB', 'BRL'],
+      ['MATIC', 'BRL'],
+      ['SOL', 'BRL'],
+      ['ATOM', 'BRL'],
+      ['LINK', 'BRL'],
+      ['LTC', 'BRL'],
+      ['TRX', 'BRL'],
+      ['AVAX', 'BRL'],
+      ['DOGE', 'BRL'],
+      ['ADA', 'BRL'],
+      ['SHIB', 'BRL'],
+      ['DOT', 'BRL'],
+      ['XMR', 'BRL'],
+    ],
   }
 
   onCreate() {
     this.setStyles()
     this.append(new TopHTML())
+    this.append(this.getPairHTML())
     this.append(this.getPriceHTML())
     this.append(this.getDatetimeHTML())
     this.append(this.getBuyButtonHTML())
@@ -75,7 +96,33 @@ export class Page extends HTML {
     this.setStyle('font-family', 'sans-serif')
   }
 
+  getPairHTML() {
+    this.state.pairs
+      .map((pair) => pair.join(''))
+      .map((pair) => this.children.pair.addOption(pair, pair))
+
+    this.children.pair.setContainerStyle('text-align', 'center')
+
+    this.children.pair.setStyle('background-color', '#ffffff')
+    this.children.pair.setStyle('padding', 'calc(1rem / 2)')
+    this.children.pair.setStyle('text-align', 'center')
+    this.children.pair.setStyle('font-size', '2rem')
+    this.children.pair.setStyle('border', 'none')
+
+    this.children.pair.on('change', () => this.state.pair.symbol = this.children.pair.getValue())
+
+    return this.children.pair
+  }
+
   getPriceHTML() {
+    this.children.price.setContainerStyle('text-align', 'center')
+
+    this.children.price.setStyle('font-size', 'calc(3rem / 2)')
+    this.children.price.setStyle('background-color', '#ffffff')
+    this.children.price.setStyle('padding', 'calc(1rem / 2)')
+    this.children.price.setStyle('text-align', 'center')
+    this.children.price.setStyle('border', 'none')
+
     return this.children.price
   }
 
@@ -95,7 +142,7 @@ export class Page extends HTML {
   }
 
   getPriceValue(price = 0) {
-    return (+price).toFixed(2).replace('.', ',')
+    return (+price).toFixed(4).replace('.', ',')
   }
 
   getPriceText(price = 0, symbol = '') {
@@ -103,7 +150,7 @@ export class Page extends HTML {
   }
 
   parseDiffPrice(value = 1, latest = 1, now = 0) {
-    return ((value * now / latest) - value).toFixed(2).replace('.', ',')
+    return this.getPriceValue((value * now / latest) - value)
   }
 
   updateDatetime() {
@@ -132,6 +179,12 @@ export class Page extends HTML {
     const moves = Local.get(['move'], [])
 
     if (moves) {
+      const moves_filtered = moves.filter(({ buy = new Buy(), sell = null }) => {
+        return buy.pair.symbol === this.state.pair.symbol
+      })
+
+      if (moves_filtered.length === 0) return
+
       const history_title = new HTML()
       this.children.history.append(history_title)
 
@@ -153,7 +206,7 @@ export class Page extends HTML {
       history_order_link.on('click', () => history_order_link.setText(this.state.order = history_order_link.getText() === 'desc' ? 'asc' : 'desc'))
       history_title.append(history_order_link)
 
-      moves
+      moves_filtered
         .sort((a, b) => this.state.order === 'desc' ? (b.buy.datetime - a.buy.datetime) : (a.buy.datetime - b.buy.datetime))
         .map(({ buy = new Buy(), sell = null }) => {
           const html = new HTML()
@@ -177,14 +230,14 @@ export class Page extends HTML {
 
             html.append(this.createText(`${this.parseDatetime(sell.datetime)}`))
 
-            html.append(this.createTitle('Diff'))
+            html.append(this.createTitle('Now'))
 
             html.append(this.createText(`${buy.pair.symbol} ${this.getPriceValue(sell.pair.price - buy.pair.price)}`))
 
             html.append(this.createText(`${buy.coin.symbol} ${this.parseDiffPrice(buy.coin.price, buy.pair.price, sell.pair.price)}`))
 
           } else {
-            html.append(this.createTitle('Diff'))
+            html.append(this.createTitle('Now'))
 
             html.append(this.createText(`${buy.pair.symbol} ${this.getPriceValue(this.state.pair.price - buy.pair.price)}`))
 
@@ -205,10 +258,10 @@ export class Page extends HTML {
     fetch(`https://api4.binance.com/api/v3/ticker/price?symbol=${this.state.pair.symbol}`)
       .then((res) => res.json())
       .then(({ price }) => this.state.pair.price = +price)
-      .then(() => this.children.price.updateprice(this.state.pair.price, this.state.pair.symbol))
-      .then(() => this.updatePrice())
+      .then(() => this.children.price.setText(this.getPriceValue(this.state.pair.price)))
       .then(() => this.updateDatetime())
       .then(() => this.updateHistory())
+      .then(() => this.updatePrice())
   }
 
 }

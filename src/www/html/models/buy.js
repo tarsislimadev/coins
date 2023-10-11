@@ -1,3 +1,5 @@
+import { Coin } from './coin.js'
+import { Pair } from './pair.js'
 
 export class Buy {
   coin = null

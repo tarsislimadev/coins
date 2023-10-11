@@ -1,4 +1,4 @@
-import { HTML } from '../libs/@brtmvdl/frontend/src/index.js'
+import { HTML, nSelect } from '../libs/@brtmvdl/frontend/src/index.js'
 
 export class PriceHTML extends HTML {
   state = {
@@ -7,16 +7,23 @@ export class PriceHTML extends HTML {
   }
 
   children = {
+    symbol: new nSelect(),
     price: new HTML(),
   }
 
-  constructor() {
-    super()
-    this.setPrice()
+  onCreate() {
+    this.append(this.getSelectHTML())
+    this.append(this.getPriceHTML())
+    //
+    this.children.symbol.dispatchEvent('change')
   }
 
-  onCreate() {
-    this.append(this.getPriceHTML())
+  getSelectHTML() {
+    this.state.pairs.map((pair) => this.children.symbol.addOption(pair.join(''), pair.join(''),))
+
+    this.children.symbol.on('change', () => this.state.symbol = this.children.symbol.getValue())
+
+    return this.children.symbol
   }
 
   getPriceHTML() {
@@ -25,18 +32,6 @@ export class PriceHTML extends HTML {
     this.children.price.setStyle('font-size', '2rem')
 
     return this.children.price
-  }
-
-  setSymbol(symbol = 0) {
-    this.state.symbol = symbol
-    this.updateprice()
-    return this
-  }
-
-  setPrice(price = 0) {
-    this.state.price = price
-    this.updateprice()
-    return this
   }
 
   getPriceText(price = this.state.price, symbol = this.state.symbol) {
