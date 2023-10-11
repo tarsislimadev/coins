@@ -153,6 +153,20 @@ export class Page extends HTML {
     return this.getPriceValue((value * now / latest) - value)
   }
 
+  createDiffDatetime(latest = 0, now = 0) {
+    const time = Math.floor((now - latest) / 1000)
+
+    const HOURS = 60 * 60
+    const MINUTES = 60
+    const SECONDS = 1
+
+    const hours = Math.floor(time / HOURS)
+    const minutes = Math.floor(time / MINUTES) - (hours * HOURS)
+    const seconds = Math.floor(time / SECONDS) - (minutes * MINUTES)
+
+    return this.createText(`${hours} hours ${minutes} minutes ${seconds} seconds`)
+  }
+
   updateDatetime() {
     this.children.datetime.updateDatetime()
   }
@@ -236,12 +250,16 @@ export class Page extends HTML {
 
             html.append(this.createText(`${buy.coin.symbol} ${this.parseDiffPrice(buy.coin.price, buy.pair.price, sell.pair.price)}`))
 
+            html.append(this.createDiffDatetime(buy.datetime, sell.datetime))
+
           } else {
             html.append(this.createTitle('Now'))
 
             html.append(this.createText(`${buy.pair.symbol} ${this.getPriceValue(this.state.pair.price - buy.pair.price)}`))
 
             html.append(this.createText(`${buy.coin.symbol} ${this.parseDiffPrice(buy.coin.price, buy.pair.price, this.state.pair.price)}`))
+
+            html.append(this.createDiffDatetime(buy.datetime, this.children.datetime.state.datetime))
 
             const sell_button = new ButtonHTML()
             sell_button.setText('Sell')

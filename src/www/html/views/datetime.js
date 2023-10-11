@@ -40,6 +40,8 @@ export class DatetimeHTML extends HTML {
   }
 
   updateDatetime() {
-    this.children.datetime.setText(this.getDatetimeText())
+    this.children.datetime.setText(this.getDatetimeText(
+      this.state.datetime = Date.now()
+    ))
   }
 }
