@@ -3,7 +3,7 @@ import * as UTILS from './utils.js'
 import * as Local from './local.js'
 import { CLOCK } from './constants.js'
 
-import { PriceHTML } from './views/price.js'
+// import { PriceHTML } from './views/price.js'
 import { DatetimeHTML } from './views/datetime.js'
 import { TopHTML } from './views/top.js'
 import { ButtonHTML } from './views/button.js'
@@ -163,7 +163,7 @@ export class Page extends HTML {
     const minutes = Math.floor((time - (hours * CLOCK.HOURS)) / CLOCK.MINUTES)
     const seconds = Math.floor((time - (hours * CLOCK.HOURS) - (minutes * CLOCK.MINUTES)) / CLOCK.SECONDS)
 
-    return [hours, minutes, seconds]
+    return [hours, minutes, seconds].map((t) => UTILS.padLeft(t, 2, '0'))
   }
 
   createDiffDatetime(latest = 0, now = 0) {
