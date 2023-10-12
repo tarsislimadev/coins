@@ -1,6 +1,7 @@
 import { HTML, nSelect, nSpan } from '@brtmvdl/frontend'
 import * as UTILS from './utils.js'
 import * as Local from './local.js'
+import { CLOCK } from './constants.js'
 
 import { PriceHTML } from './views/price.js'
 import { DatetimeHTML } from './views/datetime.js'
@@ -58,7 +59,7 @@ export class Page extends HTML {
     this.updatePrice()
   }
 
-  parseDatetime(now = Date.now()) {
+  createDatetimeText(now = Date.now()) {
     const datetime = new Date(now)
 
     const date = [
@@ -73,7 +74,7 @@ export class Page extends HTML {
       datetime.getSeconds(),
     ].map((text) => UTILS.padLeft(text, 2, '0')).join(':')
 
-    return `${date} ${time}`
+    return this.createText(`${date} ${time}`)
   }
 
   buy(coin = new Coin(), pair = new Pair()) {
@@ -153,18 +154,22 @@ export class Page extends HTML {
     return this.getPriceValue((value * now / latest) - value)
   }
 
+  parseDiffDatetime(latest = 0, now = 0) {
+    return Math.floor((now - latest) / 1000)
+  }
+
+  parseDatetime(time) {
+    const hours = Math.floor(time / CLOCK.HOURS)
+    const minutes = Math.floor((time - (hours * CLOCK.HOURS)) / CLOCK.MINUTES)
+    const seconds = Math.floor((time - (hours * CLOCK.HOURS) - (minutes * CLOCK.MINUTES)) / CLOCK.SECONDS)
+
+    return [hours, minutes, seconds]
+  }
+
   createDiffDatetime(latest = 0, now = 0) {
-    const time = Math.floor((now - latest) / 1000)
+    const [h, m, s] = this.parseDatetime(this.parseDiffDatetime(latest, now))
 
-    const HOURS = 60 * 60
-    const MINUTES = 60
-    const SECONDS = 1
-
-    const hours = Math.floor(time / HOURS)
-    const minutes = Math.floor(time / MINUTES) - (hours * HOURS)
-    const seconds = Math.floor(time / SECONDS) - (hours * HOURS) - (minutes * MINUTES)
-
-    return this.createText(`${hours} hours ${minutes} minutes ${seconds} seconds`)
+    return this.createText(`${h}h ${m}m ${s}s`)
   }
 
   updateDatetime() {
@@ -233,7 +238,7 @@ export class Page extends HTML {
 
           html.append(this.createText(`${buy.coin.symbol} ${this.getPriceValue(buy.coin.price)}`))
 
-          html.append(this.createText(`${this.parseDatetime(buy.datetime)}`))
+          html.append(this.createDatetimeText(buy.datetime))
 
           if (sell) {
             html.append(this.createTitle('Sell'))
@@ -242,7 +247,7 @@ export class Page extends HTML {
 
             html.append(this.createText(`${sell.buy.coin.symbol} ${this.getPriceValue(buy.coin.price * sell.pair.price / buy.pair.price)}`))
 
-            html.append(this.createText(`${this.parseDatetime(sell.datetime)}`))
+            html.append(this.createDatetimeText(sell.datetime))
 
             html.append(this.createTitle('Now'))
 
