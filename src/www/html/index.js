@@ -39,12 +39,12 @@ export class Page extends HTML {
       ['AVAX', 'BRL'],
       ['DOGE', 'BRL'],
       ['ADA', 'BRL'],
-      ['SHIB', 'BRL'],
+      // ['SHIB', 'BRL'],
       ['DOT', 'BRL'],
       ['BUSD', 'BRL'],
       ['CHZ', 'BRL'],
-      ['GALA', 'BRL'],
-      ['WIN', 'BRL'],
+      // ['GALA', 'BRL'],
+      // ['WIN', 'BRL'],
     ],
   }
 
