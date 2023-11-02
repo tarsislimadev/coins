@@ -16,7 +16,7 @@ docker run -d -p 80:80 tmvdl/projects:coins
 
 ## some links
 
-[To request many pair once](https://api4.binance.com/api/v3/ticker/price?symbols=[%22BTCBRL%22,%22LTCBTC%22,%22ETHBTC%22,%22LTCBRL%22,%22ETHBRL%22])
+[To request many pair once](https://api4.binance.com/api/v3/ticker/price?symbols=["BTCBRL","USDTBRL","ETHBRL","XRPBRL","BNBBRL","MATICBRL","SOLBRL","LINKBRL","LTCBRL","AVAXBRL","DOGEBRL","ADABRL","DOTBRL","BUSDBRL","CHZBRL"])
 
 ## license
 
