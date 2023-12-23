@@ -1,8 +1,7 @@
-import { HTML, nButton } from '../libs/@brtmvdl/frontend/src/index.js'
+import { HTML, nButton } from '@brtmvdl/frontend'
 
-export class ButtonHTML extends nButton {
+export class BuyButton extends nButton {
   onCreate() {
-
     this.setStyle('box-shadow', '0rem 0rem 0rem calc(1rem / 4) #000000')
     this.setStyle('background-color', '#000000')
     this.setStyle('padding', 'calc(1rem / 2)')
@@ -12,5 +11,4 @@ export class ButtonHTML extends nButton {
     this.setStyle('border', 'none')
     this.setStyle('margin', '1rem')
   }
-
 }

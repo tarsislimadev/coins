@@ -1,6 +1,6 @@
-import { HTML } from '../libs/@brtmvdl/frontend/src/index.js'
+import { HTML } from '@brtmvdl/frontend'
 
-export class TopHTML extends HTML {
+export class TopComponent extends HTML {
   onCreate() {
     this.setText('Coins')
 

@@ -1,5 +1,5 @@
-import { HTML } from '../libs/@brtmvdl/frontend/src/index.js'
-import * as UTILS from '../utils.js'
+import { HTML } from '@brtmvdl/frontend'
+import * as UTILS from '../../utils/str.js'
 
 export class DatetimeHTML extends HTML {
   state = {
@@ -7,18 +7,18 @@ export class DatetimeHTML extends HTML {
   }
 
   children = {
-    datetime: new HTML(),
+    text: new HTML(),
   }
 
   onCreate() {
-    this.append(this.getDatetimeHTML())
+    this.append(this.getText())
   }
 
-  getDatetimeHTML() {
-    this.children.datetime.setStyle('padding', '1rem 0rem')
-    this.children.datetime.setStyle('text-align', 'center')
+  getText() {
+    this.children.text.setStyle('padding', '1rem 0rem')
+    this.children.text.setStyle('text-align', 'center')
 
-    return this.children.datetime
+    return this.children.text
   }
 
   getDatetimeText(now = Date.now()) {
@@ -40,7 +40,7 @@ export class DatetimeHTML extends HTML {
   }
 
   updateDatetime() {
-    this.children.datetime.setText(this.getDatetimeText(
+    this.children.text.setText(this.getDatetimeText(
       this.state.datetime = Date.now()
     ))
   }
