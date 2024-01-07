@@ -81,10 +81,7 @@ export class Page extends HTML {
   calcDiffs() {
     return Local.get('prices').then((prices) => {
       const priceArr = Array.from(prices).map(({ value, datetime }) => ({ value: +value, datetime  }))
-        
-      priceArr.map(({ value, datetime }) => {
-        console.log({ value, datetime })
-      })
+      priceArr.map(({ value, datetime }) => console.log({ value, datetime }))
     })
   }
 
