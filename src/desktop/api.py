@@ -65,15 +65,9 @@ class Response():
     self.req = req
     self.res = res
 
-  def getBodyString(self) -> str:
-    return str(self.res.read())
-
   def getData(self) -> dict:
-    return json.loads(self.getBodyString())
+    return json.loads(self.res.read())
   
-  def get(self, key: str) -> str:
-    return str(self.getData()[key])
-
   def __str__(self) -> str:
     lines = []
     lines.append(f"HTTP/{self.res.version} {self.res.status} {self.res.reason}")

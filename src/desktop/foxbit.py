@@ -1,13 +1,22 @@
 import api
 
+class Response():
+  def __init__(self, res: api.Response) -> None:
+    self.res = res
+
 def ListCurrencies() -> api.Response:
   return api.run(api.Request("GET", "/currencies"))
 
 def ListMarkets() -> api.Response:
   return api.run(api.Request("GET", "/markets"))
 
-def GetMarketQuotation(side: str, base_currency: str, quote_currency: str, amount: str) -> api.Response:
-  return api.run(api.Request("GET", f"/markets/quotes?side={side}&base_currency={base_currency}&quote_currency={quote_currency}&amount={amount}"))
+class GetMarketQuotationResponse(Response):
+  def getPrice(self) -> str:
+    print(self.res)
+    return "price"
+
+def GetMarketQuotation(side: str, base_currency: str, quote_currency: str, amount: str) -> GetMarketQuotationResponse:
+  return GetMarketQuotationResponse(api.run(api.Request("GET", f"/markets/quotes?side={side}&base_currency={base_currency}&quote_currency={quote_currency}&amount={amount}")))
 
 def GetOrderBook(market_symbol: str, depth: str) -> api.Response:
   return api.run(api.Request("GET", f"/markets/{market_symbol}/orderbook?depth={depth}"))
@@ -59,14 +68,3 @@ def GetWithdrawal(withdrawal_sn: str) -> api.Response:
 
 def ListTransactionalLimits() -> api.Response:
   return api.run(api.Request("GET", "/transactional_limits"))
-
-class GetMarketQuotationResponse():
-  def __init__(self, res: api.Response):
-    self._side = res.get("side")
-    self._market_symbol = res.get("market_symbol")
-    self._base_amount = res.get("base_amount")
-    self._quote_amount = res.get("quote_amount")
-    self._price = res.get("price")
-
-  def __str__(self) -> str:
-    return f"side: {self._side}; market_symbol: {self._market_symbol}; base_amount: {self._base_amount}; quote_amount: {self._quote_amount}; price: {self._price}"
