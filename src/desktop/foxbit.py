@@ -12,8 +12,7 @@ def ListMarkets() -> api.Response:
 
 class GetMarketQuotationResponse(Response):
   def getPrice(self) -> str:
-    print(self.res)
-    return "price"
+    return str(self.res.getData()["price"])
 
 def GetMarketQuotation(side: str, base_currency: str, quote_currency: str, amount: str) -> GetMarketQuotationResponse:
   return GetMarketQuotationResponse(api.run(api.Request("GET", f"/markets/quotes?side={side}&base_currency={base_currency}&quote_currency={quote_currency}&amount={amount}")))

@@ -65,7 +65,7 @@ class Response():
     self.req = req
     self.res = res
 
-  def getData(self) -> dict:
+  def getData(self):
     return json.loads(self.res.read())
   
   def __str__(self) -> str:
