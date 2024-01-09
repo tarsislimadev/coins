@@ -25,9 +25,9 @@ jobs:
       - name: Github release new version
         run: gh release create v$( date +%Y%m%d%H%M%S ) ./dist/*
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Github release latest
         run: gh release upload --clobber latest ./dist/*
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
