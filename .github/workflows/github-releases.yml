@@ -1,0 +1,33 @@
+name: Github releases
+
+on:
+  schedule:
+    - cron: '50 23 * * *'
+  workflow_dispatch:
+
+jobs:
+  github-releases:
+    name: Github releases
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Setup Python
+        uses: actions/setup-python@v5.0.0
+
+      - name: Install Python Flet
+        run: python3 -m pip install flet pyinstaller pillow
+
+      - name: Flet pack
+        run: flet pack ./src/desktop/main.py
+
+      - name: Github release new version
+        run: gh release create v$( date +%Y%m%d%H%M%S ) ./dist/*
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Github release latest
+        run: gh release upload --clobber latest ./dist/*
+        env:
+          GH_TOKEN: ${{ github.token }}
