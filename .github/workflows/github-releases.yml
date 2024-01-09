@@ -23,7 +23,7 @@ jobs:
         run: flet pack ./src/desktop/main.py
 
       - name: Github release new version
-        run: gh release create v$( date +%Y%m%d%H%M%S ) ./dist/*
+        run: gh release create v$( date +%Y%m%d%H%M ) ./dist/*
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
