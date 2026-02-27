@@ -1,0 +1,29 @@
+import { HTML } from '../../../libs/afrontend/index.js'
+import { MessageModel } from '../models/message.model.js'
+
+export class MessagesComponent extends HTML {
+  messages = []
+
+  constructor(messages = []) {
+    super()
+    this.messages = messages
+  }
+
+  onCreate() {
+    super.onCreate()
+    this.setEvents()
+    this.setStyle('padding', '1rem')
+  }
+
+  setEvents() {
+    this.addEventListener('message', ({ value: data }) => this.onMessage(data))
+  }
+
+  onMessage(message = new MessageModel()) {
+    this.prepend(this.getMessageHTML(message.request?.name, message))
+  }
+
+  getMessageHTML(name, data) {
+    return new HTML()
+  }
+}
